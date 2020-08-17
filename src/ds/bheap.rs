@@ -184,7 +184,7 @@ impl <T: Debug, Cmp> Debug for BinaryHeap<T, Cmp> {
 
 #[cfg(test)]
 mod tests {
-    use crate::ds::bheep::BinaryHeap;
+    use crate::ds::bheap::BinaryHeap;
     use std::cmp::Ordering;
 
     fn construct() -> BinaryHeap<u32, ()> {
