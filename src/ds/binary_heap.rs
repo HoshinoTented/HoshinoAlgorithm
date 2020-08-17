@@ -39,10 +39,12 @@ pub struct BinaryHeap<T, Cmp> {
 
 // construct and helper
 impl<T, Cmp> BinaryHeap<T, Cmp> {
+    /// Swap two value without checking.
     pub unsafe fn swap_unchecked(&mut self, a: usize, b: usize) {
         self.inner.swap(a, b);
     }
 
+    /// Swap two value.
     pub fn swap(&mut self, a: usize, b: usize) -> Result<()> {
         let a = self.check(a)?;
         let b = self.check(b)?;
@@ -52,6 +54,11 @@ impl<T, Cmp> BinaryHeap<T, Cmp> {
         }
     }
 
+    /// Check the given index:
+    ///
+    /// * which is 0: [ErrorKind::ZeroIndex]
+    /// * which is out of bounds: [ErrorKind::OutOfBounds]
+    /// * otherwise: return itself
     fn check(&self, index: usize) -> Result<usize> {
         match index {
             0 => Err(Error { kind: ErrorKind::ZeroIndex }),
@@ -63,12 +70,21 @@ impl<T, Cmp> BinaryHeap<T, Cmp> {
         }
     }
 
+    /// Get value by given index without checking.
+    pub unsafe fn get_unchecked(&self, index: usize) -> &T {
+        self.inner.get_unchecked(index)
+    }
+
+    /// Get value by given index.
     pub fn get(&self, index: usize) -> Option<&T> {
         self.check(index).ok()?;
 
-        self.inner.get(index)
+        unsafe {
+            Some(self.get_unchecked(index))
+        }
     }
 
+    /// Construct a [BinaryHeap] without checking.
     pub const unsafe fn from_source_unchecked(source: Vec<T>, compare: Cmp) -> Self {
         BinaryHeap {
             inner: source,
@@ -76,6 +92,10 @@ impl<T, Cmp> BinaryHeap<T, Cmp> {
         }
     }
 
+    /// Construct a [BinaryHeap] with checking:
+    ///
+    /// * which is empty: [None]
+    /// * otherwise: construct!
     pub fn from_source(source: Vec<T>, compare: Cmp) -> Option<Self> {
         if source.is_empty() {
             None
@@ -86,6 +106,7 @@ impl<T, Cmp> BinaryHeap<T, Cmp> {
         }
     }
 
+    /// Construct a [BinaryHeap] with given [compare]
     pub fn new(compare: Cmp) -> Self {
         let layout = Layout::from_size_align(size_of::<T>(), align_of::<T>()).unwrap();
         let zeroed = unsafe { alloc_zeroed(layout) as *mut T };
@@ -97,6 +118,8 @@ impl<T, Cmp> BinaryHeap<T, Cmp> {
         }
     }
 
+    /// TODO
+    /// Construct a [BinaryHeap] with given [capacity] and [compare]
     pub fn with_capacity(capacity: usize, compare: Cmp) -> Self {
         BinaryHeap {
             inner: Vec::with_capacity(capacity),
@@ -104,6 +127,7 @@ impl<T, Cmp> BinaryHeap<T, Cmp> {
         }
     }
 
+    /// Calculate and return the parent of given index, with checking.
     pub fn parent(&self, idx: usize) -> Result<usize> {
         self.check(idx)?;
 
@@ -113,6 +137,7 @@ impl<T, Cmp> BinaryHeap<T, Cmp> {
         }
     }
 
+    /// Calculate and return the children of given index, with checking.
     pub fn children(&self, idx: usize) -> Result<(Option<usize>, Option<usize>)> {
         self.check(idx)?;
 
@@ -130,6 +155,7 @@ impl<T, Cmp> BinaryHeap<T, Cmp> {
         &self.inner
     }
 
+    /// Returns a mutable inner array of [BinaryHeap], because caller may modify the array and break the property, this function is `unsafe`.
     pub unsafe fn inner_mut(&mut self) -> &mut Vec<T> {
         &mut self.inner
     }
@@ -146,12 +172,14 @@ impl<T, Cmp> Index<usize> for BinaryHeap<T, Cmp> {
 // insert
 impl<T, Cmp> BinaryHeap<T, Cmp>
     where Cmp: Fn(&T, &T) -> Ordering {
+    /// Sink the given index by [self.compare]
     fn sink(&mut self, target: usize) -> Result<()> {
         self.check(target)?;
 
         todo!()
     }
 
+    /// Float the given index by [self.compare]
     fn float(&mut self, target: usize) -> Result<()> {
         let target = self.check(target)?;
 
@@ -184,7 +212,7 @@ impl <T: Debug, Cmp> Debug for BinaryHeap<T, Cmp> {
 
 #[cfg(test)]
 mod tests {
-    use crate::ds::bheap::BinaryHeap;
+    use crate::ds::binary_heap::BinaryHeap;
     use std::cmp::Ordering;
 
     fn construct() -> BinaryHeap<u32, ()> {
